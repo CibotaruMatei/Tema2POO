@@ -385,7 +385,6 @@ std::vector<Vehicul*> read_n_veh(std::istream& is, int n) {
 		else if (s == "Duba") {
 			p = new Duba();
 			is >> *dynamic_cast<Duba*>(p);
-			std::cout << *dynamic_cast<Duba*>(p);
 		}
 		else {
 			throw "Vehicul invalid";
