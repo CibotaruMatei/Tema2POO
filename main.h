@@ -16,6 +16,7 @@ private:
 	bool rece;
 	position dest, src;
 public:
+	Package();
 	Package(double, int, bool, position, position);
 	double getTime();
 	int getSize();

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <string>
 #include "main.h"
@@ -18,6 +19,14 @@ bool canGet(Vehicul* v, Package p) {
 	return true;
 }
 
+Vehicul::Vehicul() : size(0), time(0), speed(0), receive(stratVeh::closest), send(stratVeh::closest) {
+	pos.x = pos.y = 0;
+}
+
+Vehicul::Vehicul(int speed) : size(0), time(0), speed(speed), receive(stratVeh::closest), send(stratVeh::closest) {
+	pos.x = pos.y = 0;
+}
+
 Vehicul::Vehicul(int size, int speed, position pos, stratVeh receive, stratVeh send)
 	: size(size), speed(speed), pos(pos), receive(receive), send(send), time(0) {}
 
@@ -30,14 +39,22 @@ Vehicul::~Vehicul() {
 	}
 }
 
+Scuter::Scuter() : Vehicul(20) {}
+
 Scuter::Scuter(int size, position pos, stratVeh receive, stratVeh send)
 	: Vehicul(size, 20, pos, receive, send) {}
 
+Masina::Masina() : Vehicul(10) {}
+
 Masina::Masina(int size, position pos, stratVeh receive, stratVeh send)
-	: Vehicul(size, 20, pos, receive, send) {}
+	: Vehicul(size, 10, pos, receive, send) {}
+
+Duba::Duba() : Vehicul(5), frigorific(false) {}
 
 Duba::Duba(int size, position pos, stratVeh receive, stratVeh send, bool frigorific)
-	: Vehicul(size, 20, pos, receive, send), frigorific(frigorific) {}
+	: Vehicul(size, 5, pos, receive, send), frigorific(frigorific) {}
+
+bool Duba::eFrigorific() { return frigorific; }
 
 double Vehicul::getTimeToDest(position dest) {
 	return 0;
@@ -69,6 +86,10 @@ void Vehicul::deliver(Package pkg) {
 	drop(pkg);
 }
 
+Package::Package() : time(0), size(0), rece(false) {
+	src.x = src.y = dest.x = dest.y = 0;
+}
+
 Package::Package(double time, int size, bool rece, position src, position dest)
 	: time(time), size(size), rece(rece), src(src), dest(dest) {}
 
@@ -90,16 +111,6 @@ bool Package::operator==(const Package& o) {
 			size == o.size;
 }
 
-//void Package::print() {
-//	std::cout << "Package at " << dest.x << ", " << dest.y << " being delivered";
-//	
-//	if (time > 0) std::cout << " until " << time << "\n";
-//	
-//	else if (time < 0) std::cout << " in " << time << "\n";
-//	
-//	else std::cout << "\n";
-//}
-
 int Vehicul::getSpace() {
 	int used = 0;
 	for (auto& pkg : storage) {
@@ -109,7 +120,31 @@ int Vehicul::getSpace() {
 }
 
 std::ostream& operator<<(std::ostream& os, const Vehicul& v) {
-	os << "Vehicul la pozitia " << v.pos.x << ", " << v.pos.y << " cu pachetele:\n";
+	os << "Vehicul la pozitia " << v.pos.x << ", " << v.pos.y << ", cu capacitatea " << v.size << ", in momentul " << v.time << ", cu viteza " << v.speed << ", cu strategiile ";
+	switch (v.receive) {
+	case stratVeh::closest:
+		std::cout << "closest";
+		break;
+	case stratVeh::first:
+		std::cout << "first";
+		break;
+	case stratVeh::urgent:
+		std::cout << "urgent";
+		break;
+	}
+	std::cout << " si ";
+	switch (v.send) {
+	case stratVeh::closest:
+		std::cout << "closest";
+		break;
+	case stratVeh::first:
+		std::cout << "first";
+		break;
+	case stratVeh::urgent:
+		std::cout << "urgent";
+		break;
+	}
+	std::cout << ", cu pachetele:\n";
 	for (auto& pkg : v.storage) {
 		os << pkg;
 	}
@@ -118,8 +153,8 @@ std::ostream& operator<<(std::ostream& os, const Vehicul& v) {
 
 std::istream& operator>>(std::istream& is, Vehicul& v) {
 	is >> v.pos.x >> v.pos.y >> v.size;
-	std::string s;
-	std::getline(is, s);
+	std::string s = "";
+	while (s == "") std::getline(is, s);
 	if (s == "closest") {
 		v.receive = stratVeh::closest;
 	} else if (s == "first") {
@@ -127,7 +162,8 @@ std::istream& operator>>(std::istream& is, Vehicul& v) {
 	} else if (s == "urgent") {
 		v.receive = stratVeh::urgent;
 	}
-	std::getline(is, s);
+	s = "";
+	while (s == "") std::getline(is, s);
 	if (s == "closest") {
 		v.send = stratVeh::closest;
 	}
@@ -153,7 +189,31 @@ Vehicul& Vehicul::operator=(const Vehicul& v) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Scuter& s) {
-	os << "Scuter la pozitia " << s.pos.x << ", " << s.pos.y << " cu pachetele:\n";
+	os << "Scuter la pozitia " << s.pos.x << ", " << s.pos.y << ", cu capacitatea " << s.size << ", in momentul " << s.time << ", cu viteza " << s.speed << ", cu strategiile ";
+	switch (s.receive) {
+	case stratVeh::closest:
+		std::cout << "closest";
+		break;
+	case stratVeh::first:
+		std::cout << "first";
+		break;
+	case stratVeh::urgent:
+		std::cout << "urgent";
+		break;
+	}
+	std::cout << " si ";
+	switch (s.send) {
+	case stratVeh::closest:
+		std::cout << "closest";
+		break;
+	case stratVeh::first:
+		std::cout << "first";
+		break;
+	case stratVeh::urgent:
+		std::cout << "urgent";
+		break;
+	}
+	std::cout << ", cu pachetele:\n";
 	for (auto& pkg : s.storage) {
 		os << pkg;
 	}
@@ -172,7 +232,31 @@ Scuter& Scuter::operator=(const Scuter& s) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Masina& m) {
-	os << "Masina la pozitia " << m.pos.x << ", " << m.pos.y << " cu pachetele:\n";
+	os << "Masina la pozitia " << m.pos.x << ", " << m.pos.y << ", cu capacitatea " << m.size << ", in momentul " << m.time << ", cu viteza " << m.speed << ", cu strategiile ";
+	switch (m.receive) {
+	case stratVeh::closest:
+		std::cout << "closest";
+		break;
+	case stratVeh::first:
+		std::cout << "first";
+		break;
+	case stratVeh::urgent:
+		std::cout << "urgent";
+		break;
+	}
+	std::cout << " si ";
+	switch (m.send) {
+	case stratVeh::closest:
+		std::cout << "closest";
+		break;
+	case stratVeh::first:
+		std::cout << "first";
+		break;
+	case stratVeh::urgent:
+		std::cout << "urgent";
+		break;
+	}
+	std::cout << ", cu pachetele:\n";
 	for (auto& pkg : m.storage) {
 		os << pkg;
 	}
@@ -191,7 +275,31 @@ Masina& Masina::operator=(const Masina& m) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Duba& d) {
-	os << "Duba" << (d.frigorific ? " frigorifica" : "") << " la pozitia " << d.pos.x << ", " << d.pos.y << " cu pachetele:\n";
+	os << "Duba" << (d.frigorific ? " frigorifica" : "") << " la pozitia " << d.pos.x << ", " << d.pos.y << ", cu capacitatea " << d.size << ", in momentul " << d.time << ", cu viteza " << d.speed << ", cu strategiile ";
+	switch (d.receive) {
+	case stratVeh::closest:
+		std::cout << "closest";
+		break;
+	case stratVeh::first:
+		std::cout << "first";
+		break;
+	case stratVeh::urgent:
+		std::cout << "urgent";
+		break;
+	}
+	std::cout << " si ";
+	switch (d.send) {
+	case stratVeh::closest:
+		std::cout << "closest";
+		break;
+	case stratVeh::first:
+		std::cout << "first";
+		break;
+	case stratVeh::urgent:
+		std::cout << "urgent";
+		break;
+	}
+	std::cout << ", cu pachetele:\n";
 	for (auto& pkg : d.storage) {
 		os << pkg;
 	}
@@ -201,8 +309,8 @@ std::ostream& operator<<(std::ostream& os, const Duba& d) {
 std::istream& operator>>(std::istream& is, Duba& d) {
 	Vehicul& r = d;
 	is >> r;
-	std::string s;
-	getline(is, s);
+	std::string s = "";
+	while (s == "") getline(is, s);
 	if (s == "true") d.frigorific = true;
 	else if (s == "false") d.frigorific = false;
 	else throw "Invalid boolean value";
@@ -228,9 +336,9 @@ std::ostream& operator<<(std::ostream& os, const Package& p) {
 }
 
 std::istream& operator>>(std::istream& is, Package& p) {
-	std::string s;
+	std::string s = "";
 	is >> p.src.x >> p.src.y >> p.dest.x >> p.dest.y >> p.size;
-	std::getline(is, s);
+	while (s == "") std::getline(is, s);
 	if (s == "any") p.time = 0;
 	else if (s == "until") is >> p.time;
 	else if (s == "in") {
@@ -239,7 +347,8 @@ std::istream& operator>>(std::istream& is, Package& p) {
 	}
 	else throw "Invalid indicator for time value";
 
-	std::getline(is, s);
+	s = "";
+	while (s == "") std::getline(is, s);
 	if (s == "rece" || s == "true") p.rece = true;
 	else if (s == "false") p.rece = false;
 	else throw "Invalid boolean value";
@@ -248,16 +357,22 @@ std::istream& operator>>(std::istream& is, Package& p) {
 }
 
 Package& Package::operator=(const Package& p) {
-
+	dest.x = p.dest.x;
+	dest.y = p.dest.y;
+	src.x = p.src.x;
+	src.y = p.src.y;
+	rece = p.rece;
+	size = p.size;
+	time = p.time;
 
 	return *this;
 }
 
-std::vector<Vehicul*> read_n(std::istream& is, int n) {
+std::vector<Vehicul*> read_n_veh(std::istream& is, int n) {
 	std::vector<Vehicul*> v;
 	for (int i = 0; i < n; i++) {
-		std::string s;
-		std::getline(is, s);
+		std::string s = "";
+		while (s == "") std::getline(is, s);
 		Vehicul* p;
 		if (s == "Scuter") {
 			p = new Scuter();
@@ -270,6 +385,7 @@ std::vector<Vehicul*> read_n(std::istream& is, int n) {
 		else if (s == "Duba") {
 			p = new Duba();
 			is >> *dynamic_cast<Duba*>(p);
+			std::cout << *dynamic_cast<Duba*>(p);
 		}
 		else {
 			throw "Vehicul invalid";
@@ -279,7 +395,30 @@ std::vector<Vehicul*> read_n(std::istream& is, int n) {
 	return v;
 }
 
+std::vector<Package*> read_n_pac(std::istream& is, int n) {
+	std::vector<Package*> v;
+	for (int i = 0; i < n; i++) {
+		Package* p = new Package();
+		is >> *p;
+		v.push_back(p);
+	}
+	return v;
+}
+
 int main()
 {
+	std::fstream f("input.txt", std::ios::in);
+	std::vector<Vehicul*> v;
+	std::vector<Package*> p;
+	try {
+		int n, m;
+		f >> n;
+		v = read_n_veh(f, n);
+		f >> m;
+		p = read_n_pac(f, m);
+	}
+	catch (const char* e) {
+		std::cout << e;
+	}
 	return 0;
 }
